@@ -1,0 +1,7 @@
+setup.py
+ppawk/__init__.py
+ppawk.egg-info/PKG-INFO
+ppawk.egg-info/SOURCES.txt
+ppawk.egg-info/dependency_links.txt
+ppawk.egg-info/not-zip-safe
+ppawk.egg-info/top_level.txt
