@@ -35,10 +35,11 @@ import sys
 from docopt import docopt
 from fastnumbers import fast_float,fast_int,fast_real
 from signal import signal, SIGPIPE, SIG_DFL
+import re
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='0.1')
-    print(args)
+    # print(args)
     # sys.exit(-1)
 
     idelimiter = None #input delimiter
@@ -60,6 +61,19 @@ if __name__ == '__main__':
     auto_convert        = False         if args['-u'] else True
 
     #auto import libraries.
+
+    #try auto-import modules dynamically, according statement.
+    modules = re.findall(r'([\w.]+)+(?=\.\w+)\b', args['<outexpr>']) + \
+            re.findall(r'([\w.]+)+(?=\.\w+)\b', begin_statement) + \
+            re.findall(r'([\w.]+)+(?=\.\w+)\b', filter_statement) + \
+            re.findall(r'([\w.]+)+(?=\.\w+)\b', end_statement)
+
+    for m in modules:
+        try:
+            cmd = '%s=__import__("%s")'%(m,m)
+            exec(cmd)
+        except:
+            pass
 
     if begin_statement:
         exec(begin_statement)
