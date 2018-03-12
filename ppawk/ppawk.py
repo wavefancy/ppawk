@@ -6,7 +6,7 @@
     @Author: wavefancy@gmail.com
 
     Usage:
-        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-f <filter>] <outexpr>
+        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [-f <filter>] <outexpr>
         ppawk.py -h | --help | -v | --version | -f | --format
 
     Notes:
@@ -24,6 +24,7 @@
         -O <delim>     Output delimiter, default tab.
         --co           Omit comment lines, default directly copy comment lines to stdout.
         --cs <string>  The start string for indicating comment line, default '#'.
+        -u             Do not auto-convert string to numerical.
         -B <statement> Begin statement.
         -E <statement> End statement.
         -h --help     Show this screen.
@@ -56,6 +57,9 @@ if __name__ == '__main__':
     line_statement      = args['<outexpr>'].rsplit(';',maxsplit=1)
     line_action         = line_statement[0] if len(line_statement) == 2 else ''
     line_result         = line_statement[-1]
+    auto_convert        = False         if args['-u'] else True
+
+    #auto import libraries.
 
     if begin_statement:
         exec(begin_statement)
@@ -68,8 +72,13 @@ if __name__ == '__main__':
             continue
 
         l = line.strip()
+        if not l:    #skip empty lines.
+            continue
+
         nf = len(l)
-        f = [fast_real(x) for x  in l.split(idelimiter)]
+        f = l.split(idelimiter)
+        if auto_convert:
+            f = [fast_real(x) for x in f]
         # print(f)
 
         if filter_statement:
