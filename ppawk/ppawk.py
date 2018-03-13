@@ -6,7 +6,7 @@
     @Author: wavefancy@gmail.com
 
     Usage:
-        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [-f <filter>] <outexpr>
+        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [-H] [-f <filter>] <outexpr>
         ppawk.py -h | --help | -v | --version | -f | --format
 
     Notes:
@@ -22,6 +22,7 @@
         -F <delim>     Input delimiter, default one or more whitespace,
                          call str.split(). tab for single tab separater.
         -O <delim>     Output delimiter, default tab.
+        -H             Indicate the first line as header (except comments), do not apply -f filter.
         --co           Omit comment lines, default directly copy comment lines to stdout.
         --cs <string>  The start string for indicating comment line, default '#'.
         -u             Do not auto-convert string to numerical.
@@ -59,6 +60,7 @@ if __name__ == '__main__':
     line_action         = line_statement[0] if len(line_statement) == 2 else ''
     line_result         = line_statement[-1]
     auto_convert        = False         if args['-u'] else True
+    without_header      = False         if args['-H'] else True
 
     #auto import libraries.
 
@@ -95,7 +97,7 @@ if __name__ == '__main__':
             f = [fast_real(x) for x in f]
         # print(f)
 
-        if filter_statement:
+        if filter_statement and without_header:
             if not eval(filter_statement):
                 continue
 
@@ -106,6 +108,10 @@ if __name__ == '__main__':
         #test whether the results is list or tuple
         out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
         sys.stdout.write('%s\n'%(out))
+
+        # header can only apply once.
+        if without_header = False:
+            without_header = True
 
     if end_statement:
         re = eval(end_statement)
