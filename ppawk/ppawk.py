@@ -6,14 +6,14 @@
     @Author: wavefancy@gmail.com
 
     Usage:
-        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [-f <filter>] <outexpr>
+        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [--xm] [-H] [-f <filter>] [<outexpr>]
         ppawk.py -h | --help | -v | --version | -f | --format
 
     Notes:
         1. Read from stdin and output to stdout.
 
     Options:
-        <outexpr>      Output evaluation for each line.
+        <outexpr>      Output evaluation for each line, default as 'l' if not setted.
         -f <filter>    Test this filter expression before evaluating <outexpr>.
                          Only True of this filter will do the nexe evaluation.
                          The filter can be a python expression return true of false,
@@ -22,8 +22,11 @@
         -F <delim>     Input delimiter, default one or more whitespace,
                          call str.split(). tab for single tab separater.
         -O <delim>     Output delimiter, default tab.
+        -H             Indicate the first line as header (except comments), do not apply -f filter.
         --co           Omit comment lines, default directly copy comment lines to stdout.
         --cs <string>  The start string for indicating comment line, default '#'.
+        --xm           Close the function for auto infer and load modules.
+                         Python modules were auto-detected as: re.findall(r'([\w.]+)+(?=\.\w+)\b'
         -u             Do not auto-convert string to numerical.
         -B <statement> Begin statement.
         -E <statement> End statement.
@@ -49,6 +52,8 @@ if __name__ == '__main__':
         else:
             idelimiter = args['-F']
 
+    if not args['<outexpr>']:
+        args['<outexpr>'] = 'l'
     odelimiter          = args['-O']    if args['-O'] else '\t'
     begin_statement     = args['-B']    if args['-B'] else ''
     end_statement       = args['-E']    if args['-E'] else ''
@@ -59,21 +64,23 @@ if __name__ == '__main__':
     line_action         = line_statement[0] if len(line_statement) == 2 else ''
     line_result         = line_statement[-1]
     auto_convert        = False         if args['-u'] else True
+    without_header      = False         if args['-H'] else True
 
     #auto import libraries.
-
+    auto_load_modules = False if args['--xm'] else True
     #try auto-import modules dynamically, according statement.
-    modules = re.findall(r'([\w.]+)+(?=\.\w+)\b', args['<outexpr>']) + \
-            re.findall(r'([\w.]+)+(?=\.\w+)\b', begin_statement) + \
-            re.findall(r'([\w.]+)+(?=\.\w+)\b', filter_statement) + \
-            re.findall(r'([\w.]+)+(?=\.\w+)\b', end_statement)
+    if auto_load_modules:
+        modules = re.findall(r'([\w.]+)+(?=\.\w+)\b', args['<outexpr>']) + \
+                re.findall(r'([\w.]+)+(?=\.\w+)\b', begin_statement) + \
+                re.findall(r'([\w.]+)+(?=\.\w+)\b', filter_statement) + \
+                re.findall(r'([\w.]+)+(?=\.\w+)\b', end_statement)
 
-    for m in modules:
-        try:
-            cmd = '%s=__import__("%s")'%(m,m)
-            exec(cmd)
-        except:
-            pass
+        for m in modules:
+            try:
+                cmd = '%s=__import__("%s")'%(m,m)
+                exec(cmd)
+            except:
+                pass
 
     if begin_statement:
         exec(begin_statement)
@@ -94,10 +101,14 @@ if __name__ == '__main__':
         if auto_convert:
             f = [fast_real(x) for x in f]
         # print(f)
-
-        if filter_statement:
-            if not eval(filter_statement):
-                continue
+        try:
+            if filter_statement and without_header:
+                if not eval(filter_statement):
+                    continue
+        except Exception as e:
+            sys.stderr.write('ERROR at line:%s\n'%(l))
+            sys.stderr.write(str(e))
+            sys.exit(-1)
 
         # Evalute and output results.
         if line_action:
@@ -106,6 +117,10 @@ if __name__ == '__main__':
         #test whether the results is list or tuple
         out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
         sys.stdout.write('%s\n'%(out))
+
+        # header can only apply once.
+        if without_header == False:
+            without_header = True
 
     if end_statement:
         re = eval(end_statement)
