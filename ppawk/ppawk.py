@@ -6,7 +6,7 @@
     @Author: wavefancy@gmail.com
 
     Usage:
-        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [--xm] [-H] [-f <filter>] [<outexpr>]
+        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--nc] [--cs <string>] [--co] [-u] [--xm] [-H] [-f <filter>] [<outexpr>]
         ppawk.py -h | --help | -v | --version | -f | --format
 
     Notes:
@@ -25,6 +25,7 @@
         -H             Indicate the first line as header (except comments), do not apply -f filter.
         --co           Omit comment lines, default directly copy comment lines to stdout.
         --cs <string>  The start string for indicating comment line, default '#'.
+        --nc           No Comments. Process all input data, do not treat any data as comment.
         --xm           Close the function for auto infer and load modules.
                          Python modules were auto-detected as: re.findall(r'([\w.]+)+(?=\.\w+)\b'
         -u             Do not auto-convert string to numerical.
@@ -65,6 +66,7 @@ if __name__ == '__main__':
     line_result         = line_statement[-1]
     auto_convert        = False         if args['-u'] else True
     without_header      = False         if args['-H'] else True
+    NOT_all_data        = False         if args['--nc'] else True
 
     #auto import libraries.
     auto_load_modules = False if args['--xm'] else True
@@ -87,7 +89,7 @@ if __name__ == '__main__':
 
     for line in sys.stdin:
         #deal with comment lines.
-        if line.startswith(comment_start):
+        if NOT_all_data and line.startswith(comment_start):
             if copy_comments:
                 sys.stdout.write(line)
             continue
