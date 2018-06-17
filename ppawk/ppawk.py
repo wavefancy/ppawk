@@ -3,17 +3,17 @@
 """
 
     An awk like python one line processor.
-    @Author: wavefancy@gmail.com
+    @Author: Wallace Wang, wavefancy@gmail.com
 
     Usage:
-        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [--xm] [-H] [-f <filter>] <outexpr>
+        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--nc] [--cs <string>] [--co] [--ms int] [-u] [--xm] [-H] [-f <filter>] [<outexpr>]
         ppawk.py -h | --help | -v | --version | -f | --format
 
     Notes:
         1. Read from stdin and output to stdout.
 
     Options:
-        <outexpr>      Output evaluation for each line.
+        <outexpr>      Output evaluation for each line, default as 'l' if not setted.
         -f <filter>    Test this filter expression before evaluating <outexpr>.
                          Only True of this filter will do the nexe evaluation.
                          The filter can be a python expression return true of false,
@@ -25,6 +25,9 @@
         -H             Indicate the first line as header (except comments), do not apply -f filter.
         --co           Omit comment lines, default directly copy comment lines to stdout.
         --cs <string>  The start string for indicating comment line, default '#'.
+        --nc           No Comments. Process all input data, do not treat any data as comment.
+        --ms int       Split the input line by delimiter maxmium 'int' times.
+                         The results array len(f) <= 'int' +1.
         --xm           Close the function for auto infer and load modules.
                          Python modules were auto-detected as: re.findall(r'([\w.]+)+(?=\.\w+)\b'
         -u             Do not auto-convert string to numerical.
@@ -52,6 +55,8 @@ if __name__ == '__main__':
         else:
             idelimiter = args['-F']
 
+    if not args['<outexpr>']:
+        args['<outexpr>'] = 'l'
     odelimiter          = args['-O']    if args['-O'] else '\t'
     begin_statement     = args['-B']    if args['-B'] else ''
     end_statement       = args['-E']    if args['-E'] else ''
@@ -63,6 +68,8 @@ if __name__ == '__main__':
     line_result         = line_statement[-1]
     auto_convert        = False         if args['-u'] else True
     without_header      = False         if args['-H'] else True
+    NOT_all_data        = False         if args['--nc'] else True
+    MAXMIUMSPLIT        = int(args['--ms']) if args['--ms'] else -1
 
     #auto import libraries.
     auto_load_modules = False if args['--xm'] else True
@@ -85,7 +92,7 @@ if __name__ == '__main__':
 
     for line in sys.stdin:
         #deal with comment lines.
-        if line.startswith(comment_start):
+        if NOT_all_data and line.startswith(comment_start):
             if copy_comments:
                 sys.stdout.write(line)
             continue
@@ -95,14 +102,18 @@ if __name__ == '__main__':
             continue
 
         nf = len(l)
-        f = l.split(idelimiter)
+        f = l.split(idelimiter,maxsplit=MAXMIUMSPLIT)
         if auto_convert:
             f = [fast_real(x) for x in f]
         # print(f)
-
-        if filter_statement and without_header:
-            if not eval(filter_statement):
-                continue
+        try:
+            if filter_statement and without_header:
+                if not eval(filter_statement):
+                    continue
+        except Exception as e:
+            sys.stderr.write('ERROR at line:%s\n'%(l))
+            sys.stderr.write(str(e))
+            sys.exit(-1)
 
         # Evalute and output results.
         if line_action:
