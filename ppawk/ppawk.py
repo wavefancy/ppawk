@@ -6,7 +6,7 @@
     @Author: wavefancy@gmail.com
 
     Usage:
-        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [-H] [-f <filter>] <outexpr>
+        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--cs <string>] [--co] [-u] [--xm] [-H] [-f <filter>] <outexpr>
         ppawk.py -h | --help | -v | --version | -f | --format
 
     Notes:
@@ -25,6 +25,8 @@
         -H             Indicate the first line as header (except comments), do not apply -f filter.
         --co           Omit comment lines, default directly copy comment lines to stdout.
         --cs <string>  The start string for indicating comment line, default '#'.
+        --xm           Close the function for auto infer and load modules.
+                         Python modules were auto-detected as: re.findall(r'([\w.]+)+(?=\.\w+)\b'
         -u             Do not auto-convert string to numerical.
         -B <statement> Begin statement.
         -E <statement> End statement.
@@ -63,19 +65,20 @@ if __name__ == '__main__':
     without_header      = False         if args['-H'] else True
 
     #auto import libraries.
-
+    auto_load_modules = False if args['--xm'] else True
     #try auto-import modules dynamically, according statement.
-    modules = re.findall(r'([\w.]+)+(?=\.\w+)\b', args['<outexpr>']) + \
-            re.findall(r'([\w.]+)+(?=\.\w+)\b', begin_statement) + \
-            re.findall(r'([\w.]+)+(?=\.\w+)\b', filter_statement) + \
-            re.findall(r'([\w.]+)+(?=\.\w+)\b', end_statement)
+    if auto_load_modules:
+        modules = re.findall(r'([\w.]+)+(?=\.\w+)\b', args['<outexpr>']) + \
+                re.findall(r'([\w.]+)+(?=\.\w+)\b', begin_statement) + \
+                re.findall(r'([\w.]+)+(?=\.\w+)\b', filter_statement) + \
+                re.findall(r'([\w.]+)+(?=\.\w+)\b', end_statement)
 
-    for m in modules:
-        try:
-            cmd = '%s=__import__("%s")'%(m,m)
-            exec(cmd)
-        except:
-            pass
+        for m in modules:
+            try:
+                cmd = '%s=__import__("%s")'%(m,m)
+                exec(cmd)
+            except:
+                pass
 
     if begin_statement:
         exec(begin_statement)
@@ -110,7 +113,7 @@ if __name__ == '__main__':
         sys.stdout.write('%s\n'%(out))
 
         # header can only apply once.
-        if without_header = False:
+        if without_header == False:
             without_header = True
 
     if end_statement:
