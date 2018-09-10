@@ -129,8 +129,8 @@ if __name__ == '__main__':
 
     if end_statement:
         re = exec(end_statement)
-        out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
-        sys.stdout.write('%s\n'%(out))
+        # out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
+        # sys.stdout.write('%s\n'%(out))
 
 sys.stdout.flush()
 sys.stdout.close()
