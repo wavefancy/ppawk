@@ -131,7 +131,7 @@ if __name__ == '__main__':
         sys.stdout.write('%s\n'%(out))
 
     if end_statement:
-        re = eval(end_statement)
+        re = exec(end_statement)
         out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
         sys.stdout.write('%s\n'%(out))
 
