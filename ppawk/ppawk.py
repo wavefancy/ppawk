@@ -3,10 +3,10 @@
 """
 
     An awk like python one line processor.
-    @Author: wavefancy@gmail.com
+    @Author: Wallace Wang, wavefancy@gmail.com
 
     Usage:
-        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--nc] [--cs <string>] [--co] [-u] [--xm] [-H] [-f <filter>] [<outexpr>]
+        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--nc] [--cs <string>] [--co] [--ms int] [-u] [--xm] [-H] [-f <filter>] [<outexpr>]
         ppawk.py -h | --help | -v | --version | -f | --format
 
     Notes:
@@ -22,10 +22,13 @@
         -F <delim>     Input delimiter, default one or more whitespace,
                          call str.split(). tab for single tab separater.
         -O <delim>     Output delimiter, default tab.
-        -H             Indicate the first line as header (except comments), do not apply -f filter.
+        -H             Indicate the first line as header (None empty, None comment line),
+                         directly output header line.
         --co           Omit comment lines, default directly copy comment lines to stdout.
         --cs <string>  The start string for indicating comment line, default '#'.
         --nc           No Comments. Process all input data, do not treat any data as comment.
+        --ms int       Split the input line by delimiter maxmium 'int' times.
+                         The results array len(f) <= 'int' +1.
         --xm           Close the function for auto infer and load modules.
                          Python modules were auto-detected as: re.findall(r'([\w.]+)+(?=\.\w+)\b'
         -u             Do not auto-convert string to numerical.
@@ -67,6 +70,7 @@ if __name__ == '__main__':
     auto_convert        = False         if args['-u'] else True
     without_header      = False         if args['-H'] else True
     NOT_all_data        = False         if args['--nc'] else True
+    MAXMIUMSPLIT        = int(args['--ms']) if args['--ms'] else -1
 
     #auto import libraries.
     auto_load_modules = False if args['--xm'] else True
@@ -98,8 +102,14 @@ if __name__ == '__main__':
         if not l:    #skip empty lines.
             continue
 
+        # header can only apply once. directly output header line.
+        if without_header == False:
+            without_header = True
+            sys.stdout.write(line)
+            continue
+
         nf = len(l)
-        f = l.split(idelimiter)
+        f = l.split(idelimiter,maxsplit=MAXMIUMSPLIT)
         if auto_convert:
             f = [fast_real(x) for x in f]
         # print(f)
@@ -119,10 +129,6 @@ if __name__ == '__main__':
         #test whether the results is list or tuple
         out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
         sys.stdout.write('%s\n'%(out))
-
-        # header can only apply once.
-        if without_header == False:
-            without_header = True
 
     if end_statement:
         re = eval(end_statement)

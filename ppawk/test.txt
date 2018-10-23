@@ -1,4 +1,4 @@
 #name	age	sex
 aaron	10	male
 alex	-2	femal
-wang	-0.0331263	femal
+wang	-0.0331263	fema l
