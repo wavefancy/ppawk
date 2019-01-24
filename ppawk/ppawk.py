@@ -88,6 +88,13 @@ if __name__ == '__main__':
             except:
                 pass
 
+    # compile the code for fast speed.
+    line_result = compile(line_result, '<string>', 'eval') if line_result else line_result
+    line_action = compile(line_action, '<string>', 'exec') if line_action else line_action
+    end_statement = compile(end_statement, '<string>', 'eval') if end_statement else end_statement
+    filter_statement =  compile(filter_statement, '<string>', 'eval') if filter_statement else filter_statement
+    begin_statement = compile(begin_statement, '<string>', 'exec') if begin_statement else begin_statement
+
     if begin_statement:
         exec(begin_statement)
 
@@ -131,7 +138,7 @@ if __name__ == '__main__':
         sys.stdout.write('%s\n'%(out))
 
     if end_statement:
-        re = exec(end_statement)
+        re = eval(end_statement)
         out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
         sys.stdout.write('%s\n'%(out))
 
