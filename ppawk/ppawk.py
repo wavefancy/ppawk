@@ -22,7 +22,8 @@
         -F <delim>     Input delimiter, default one or more whitespace,
                          call str.split(). tab for single tab separater.
         -O <delim>     Output delimiter, default tab.
-        -H             Indicate the first line as header (except comments), do not apply -f filter.
+        -H             Indicate the first line as header (None empty, None comment line),
+                         directly output header line.
         --co           Omit comment lines, default directly copy comment lines to stdout.
         --cs <string>  The start string for indicating comment line, default '#'.
         --nc           No Comments. Process all input data, do not treat any data as comment.
@@ -87,6 +88,13 @@ if __name__ == '__main__':
             except:
                 pass
 
+    # compile the code for fast speed.
+    line_result = compile(line_result, '<string>', 'eval') if line_result else line_result
+    line_action = compile(line_action, '<string>', 'exec') if line_action else line_action
+    end_statement = compile(end_statement, '<string>', 'eval') if end_statement else end_statement
+    filter_statement =  compile(filter_statement, '<string>', 'eval') if filter_statement else filter_statement
+    begin_statement = compile(begin_statement, '<string>', 'exec') if begin_statement else begin_statement
+
     if begin_statement:
         exec(begin_statement)
 
@@ -99,6 +107,12 @@ if __name__ == '__main__':
 
         l = line.strip()
         if not l:    #skip empty lines.
+            continue
+
+        # header can only apply once. directly output header line.
+        if without_header == False:
+            without_header = True
+            sys.stdout.write(line)
             continue
 
         nf = len(l)
@@ -123,14 +137,11 @@ if __name__ == '__main__':
         out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
         sys.stdout.write('%s\n'%(out))
 
-        # header can only apply once.
-        if without_header == False:
-            without_header = True
-
     if end_statement:
-        re = exec(end_statement)
-        # out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
-        # sys.stdout.write('%s\n'%(out))
+        re = eval(end_statement)
+        out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
+        sys.stdout.write('%s\n'%(out))
+
 
 sys.stdout.flush()
 sys.stdout.close()
