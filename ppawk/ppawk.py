@@ -11,6 +11,7 @@
 
     Notes:
         1. Read from stdin and output to stdout.
+        2. fastnumbers.__version__ >= 2.2.0
 
     Options:
         <outexpr>      Output evaluation for each line, default as 'l' if not setted.
@@ -118,7 +119,7 @@ if __name__ == '__main__':
         nf = len(l)
         f = l.split(idelimiter,maxsplit=MAXMIUMSPLIT)
         if auto_convert:
-            f = [fast_real(x) for x in f]
+            f = [fast_real(x, allow_underscores=False) for x in f]
         # print(f)
         try:
             if filter_statement and without_header:
