@@ -6,7 +6,7 @@
     @Author: Wallace Wang, wavefancy@gmail.com
 
     Usage:
-        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--nc] [--cs <string>] [--co] [--ms int] [-u] [--xm] [-H] [-f <filter>] [<outexpr>]
+        ppawk.py [-F <delim>] [-O <delim>] [-B <statement>] [-E <statement>] [--nc] [--cs <string>] [--co] [--ms int] [-u] [--xm] [--rq] [-H] [-f <filter>] [<outexpr>]
         ppawk.py -h | --help | -v | --version | -f | --format
 
     Notes:
@@ -33,6 +33,7 @@
         --xm           Close the function for auto infer and load modules.
                          Python modules were auto-detected as: re.findall(r'([\w.]+)+(?=\.\w+)\b'
         -u             Do not auto-convert string to numerical.
+        --rq           Replace ':' as '"'(double quote) in any statements.
         -B <statement> Begin statement.
         -E <statement> End statement.
         -h --help     Show this screen.
@@ -88,6 +89,14 @@ if __name__ == '__main__':
                 exec(cmd)
             except:
                 pass
+
+    # replace : as "
+    if args['--rq']:
+        line_result      = line_result.replace(':','"')
+        line_action      = line_action.replace(':','"')
+        end_statement    = end_statement.replace(':','"')
+        filter_statement = filter_statement.replace(':','"')
+        begin_statement  = begin_statement.replace(':','"')
 
     # compile the code for fast speed.
     line_result = compile(line_result, '<string>', 'eval') if line_result else line_result
