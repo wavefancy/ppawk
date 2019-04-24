@@ -91,12 +91,13 @@ if __name__ == '__main__':
                 pass
 
     # replace : as "
+    RQSTRING = '::'
     if args['--rq']:
-        line_result      = line_result.replace(':','"')
-        line_action      = line_action.replace(':','"')
-        end_statement    = end_statement.replace(':','"')
-        filter_statement = filter_statement.replace(':','"')
-        begin_statement  = begin_statement.replace(':','"')
+        line_result      = line_result.replace(RQSTRING,'"')
+        line_action      = line_action.replace(RQSTRING,'"')
+        end_statement    = end_statement.replace(RQSTRING,'"')
+        filter_statement = filter_statement.replace(RQSTRING,'"')
+        begin_statement  = begin_statement.replace(RQSTRING,'"')
 
     # compile the code for fast speed.
     line_result = compile(line_result, '<string>', 'eval') if line_result else line_result
