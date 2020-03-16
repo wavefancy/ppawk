@@ -130,23 +130,25 @@ if __name__ == '__main__':
         f = l.split(idelimiter,maxsplit=MAXMIUMSPLIT)
         if auto_convert:
             f = [fast_real(x, allow_underscores=False) for x in f]
-        # print(f)
+        
+        # Do filter or output results.
         try:
             if filter_statement and without_header:
                 if not eval(filter_statement):
                     continue
+        
+            # Evalute and output results.
+            if line_action:
+                exec(line_action)
+            re = eval(line_result)
+            #test whether the results is list or tuple
+            out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
+            sys.stdout.write('%s\n'%(out))
+
         except Exception as e:
-            sys.stderr.write('ERROR at line:%s\n'%(l))
+            sys.stderr.write('ERROR at line: %s\n'%(l))
             sys.stderr.write(str(e))
             sys.exit(-1)
-
-        # Evalute and output results.
-        if line_action:
-            exec(line_action)
-        re = eval(line_result)
-        #test whether the results is list or tuple
-        out = odelimiter.join(map(str,re)) if isinstance(re, (list, tuple)) else re
-        sys.stdout.write('%s\n'%(out))
 
     if end_statement:
         re = eval(end_statement)
